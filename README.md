@@ -8,12 +8,20 @@ Run command with user time sense timeout.
 
 
 Install
-=======
+-------
+
 ```pip install git+https://github.com/cloverrose/utimeout.git```
 
 
+How to use
+----------
+
+replace ```from subprocess import Popen``` into ```from utimeout import Popen```.
+
+
+
 Implementation
-==============
+--------------
 
 - polling /proc/pid/stat files.
   - inotify cannot use because /proc/pid/stat is pseudo file.
@@ -24,7 +32,7 @@ Implementation
 
 
 DEMO
-====
+----
 
 ```
 cd sample
