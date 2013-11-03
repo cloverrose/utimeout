@@ -10,6 +10,14 @@ Run command with user time sense timeout.
 Install
 -------
 
+utimeout use redis.
+
+```
+sudo apt-get install redis-server redis-doc
+pip install redis
+```
+
+
 ```pip install git+https://github.com/cloverrose/utimeout.git```
 
 
