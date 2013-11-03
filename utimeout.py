@@ -46,6 +46,10 @@ def _calc_total_usertime(r, tick, redis_key):
 
 
 def start(cmd, timeout, polling_time=1, verbose=False):
+    """
+    if timeout return True,
+    if finish return False.
+    """
     redis_key = uuid.uuid4().hex
     os.environ['redis_key'] = redis_key
 
@@ -64,8 +68,11 @@ def start(cmd, timeout, polling_time=1, verbose=False):
         if utime > timeout:
             os.killpg(p.pid, signal.SIGTERM)
             sys.stderr.write('timeout\n')
+            timeout = True
             break
         time.sleep(polling_time)
     else:
         sys.stderr.write('finish\n')
+        timeout = False
     r.delete(redis_key)
+    return timeout
