@@ -67,12 +67,13 @@ def start(cmd, timeout, polling_time=1, verbose=False):
             sys.stderr.write('utime: {0}s\n'.format(utime))
         if utime > timeout:
             os.killpg(p.pid, signal.SIGTERM)
-            sys.stderr.write('timeout\n')
+            sys.stderr.write('timeout ({0}s)\n'.format(utime))
             timeout = True
             break
         time.sleep(polling_time)
     else:
-        sys.stderr.write('finish\n')
+        utime = _calc_total_usertime(r, tick, redis_key)
+        sys.stderr.write('finish ({0}s)\n'.format(utime))
         timeout = False
     r.delete(redis_key)
     return timeout
