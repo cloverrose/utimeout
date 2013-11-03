@@ -7,6 +7,11 @@ Run command with user time sense timeout.
    - ```python demo.py sleepchild```
 
 
+Install
+=======
+```pip install git+https://github.com/cloverrose/utimeout.git```
+
+
 Implementation
 ==============
 
