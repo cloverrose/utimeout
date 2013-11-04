@@ -7,6 +7,7 @@ import time
 import os.path
 import uuid
 import redis
+from multiprocessing import Process
 
 
 def Popen(args, bufsize=0, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None, close_fds=False, shell=False, cwd=None, env=None, universal_newlines=False, startupinfo=None, creationflags=0):
@@ -42,7 +43,7 @@ def _calc_total_usertime(r, tick, redis_key):
         r.srem(redis_key, pid)
     running_child_usertime = running_child_usertime / tick
     times = os.times()
-    return running_child_usertime + times[0] + times[2]
+    return running_child_usertime + times[2]
 
 
 def start(cmd, timeout, polling_time=1, verbose=False):
@@ -77,3 +78,11 @@ def start(cmd, timeout, polling_time=1, verbose=False):
         timeout = False
     r.delete(redis_key)
     return timeout
+
+def start_process(cmd, timeout, polling_time=1, verbose=False):
+    p = Process(target=start,
+                kwargs=dict(cmd=cmd,
+                            timeout=timeout,
+                            polling_time=polling_time,
+                            verbose=verbose))
+    p.start()

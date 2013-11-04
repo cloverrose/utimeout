@@ -18,7 +18,7 @@ def main(n, m):
         ps.append(Popen([path, str(n)]))
 
     for _ in range(m):
-        fib.fib(30)
+        print fib.fib(30)
         time.sleep(5)
 
     for p in ps:
