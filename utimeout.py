@@ -7,7 +7,7 @@ import time
 import os.path
 import uuid
 import redis
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 
 
 def Popen(args, bufsize=0, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None, close_fds=False, shell=False, cwd=None, env=None, universal_newlines=False, startupinfo=None, creationflags=0):
@@ -60,7 +60,7 @@ def start(cmd, timeout, polling_time=1, verbose=False):
     r = redis.StrictRedis(host='localhost', port=6379, db=0)
     r.delete(redis_key)
 
-    p = Popen(cmd, preexec_fn=os.setsid, stderr=subprocess.STDOUT)
+    p = Popen(cmd, preexec_fn=os.setsid, stderr=subprocess.STDOUT, stdout=sys.stdout)
 
     while p.poll() is None:
         utime = _calc_total_usertime(r, tick, redis_key)
@@ -79,10 +79,24 @@ def start(cmd, timeout, polling_time=1, verbose=False):
     r.delete(redis_key)
     return timeout
 
+
+def _start_queue(queue, cmd, timeout, polling_time=1, verbose=False):
+    timeout = start(cmd, timeout, polling_time, verbose)
+    queue.put(timeout)
+
+
 def start_process(cmd, timeout, polling_time=1, verbose=False):
-    p = Process(target=start,
+    """
+    Run start method in new Process.
+    """
+    queue = Queue()
+    p = Process(target=_start_queue,
+                args=(queue,),
                 kwargs=dict(cmd=cmd,
                             timeout=timeout,
                             polling_time=polling_time,
                             verbose=verbose))
     p.start()
+    timeout = queue.get()
+    p.join()
+    return timeout
