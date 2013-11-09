@@ -9,6 +9,10 @@ import uuid
 import redis
 from multiprocessing import Process, Queue
 
+import datetime
+import pytz
+tzinfo = pytz.timezone('Asia/Tokyo')
+
 STDOUT = -2
 
 def Popen(args, bufsize=0, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None, close_fds=False, shell=False, cwd=None, env=None, universal_newlines=False, startupinfo=None, creationflags=0):
@@ -106,7 +110,14 @@ def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None)
                             verbose=verbose,
                             stdout=out,
                             stderr=err))
+    err.write('>' * 80 + '\n')
+    err.write('# DATETIME: {0}\n'.format(datetime.datetime.now(tz=tzinfo)))
+    err.write(' '.join(cmd) + '\n')
+    err.flush()
     p.start()
     timeout = queue.get()
     p.join()
+    err.write('# DATETIME: {0}\n'.format(datetime.datetime.now(tz=tzinfo)))
+    err.write('<' * 80 + '\n')
+    err.flush()
     return timeout
