@@ -47,11 +47,7 @@ def _calc_total_cputime(r, tick, redis_key):
     return running_child_cputime + times[2] + times[3]
 
 
-def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None):
-    """
-    if timeout return True,
-    if finish return False.
-    """
+def _start_core(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None):
     out = stdout if stdout is not None else sys.stdout
     if stderr == STDOUT:
         err = out
@@ -92,13 +88,14 @@ def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None)
 
 
 def _start_queue(queue, cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None):
-    timeout = start(cmd, timeout, polling_time, verbose, stdout, stderr)
+    timeout = _start_core(cmd, timeout, polling_time, verbose, stdout, stderr)
     queue.put(timeout)
 
 
-def start_process(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None):
+def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None):
     """
-    Run start method in new Process.
+    if timeout return True,
+    if finish return False.
     """
     queue = Queue()
     p = Process(target=_start_queue,
