@@ -51,7 +51,7 @@ def _calc_total_cputime(r, tick, redis_key):
     return running_child_cputime + times[2] + times[3]
 
 
-def _start_core(cmd, timeout, polling_time=1, verbose, stdout, stderr):
+def _start_core(cmd, timeout, polling_time, verbose, stdout, stderr):
     redis_key = uuid.uuid4().hex
     os.environ['redis_key'] = redis_key
 
@@ -85,7 +85,7 @@ def _start_core(cmd, timeout, polling_time=1, verbose, stdout, stderr):
     return timeout
 
 
-def _start_queue(queue, cmd, timeout, polling_time=1, verbose, stdout, stderr):
+def _start_queue(queue, cmd, timeout, polling_time, verbose, stdout, stderr):
     timeout = _start_core(cmd, timeout, polling_time, verbose, stdout, stderr)
     queue.put(timeout)
 
