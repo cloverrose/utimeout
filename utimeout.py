@@ -22,29 +22,29 @@ def _get_tick():
     return os.sysconf(os.sysconf_names['SC_CLK_TCK'])
 
 
-def _parse_utime(pid):
+def _parse_cputime(pid):
     try:
         with open('/proc/{0}/stat'.format(pid)) as f:
-            return int(f.readline().strip('\n').split()[13])
+            t = f.readline().strip('\n').split()
+            return int(t[13]) + int(t[14])
     except IOError as e:
         return None
 
 
-def _calc_total_usertime(r, tick, redis_key):
-    running_child_usertime = 0
+def _calc_total_cputime(r, tick, redis_key):
+    running_child_cputime = 0
     remove_pids = set()
     for pid in r.smembers(redis_key):
-        ipid = int(pid)
-        utime = _parse_utime(ipid)
-        if utime is None:
+        cputime = _parse_cputime(int(pid))
+        if cputime is None:
             remove_pids.add(pid)
         else:
-            running_child_usertime += utime
+            running_child_cputime += cputime
     for pid in remove_pids:
         r.srem(redis_key, pid)
-    running_child_usertime = running_child_usertime / tick
+    running_child_cputime = running_child_cputime / tick
     times = os.times()
-    return running_child_usertime + times[2]
+    return running_child_cputime + times[2] + times[3]
 
 
 def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None):
@@ -71,20 +71,20 @@ def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None)
     p = Popen(cmd, preexec_fn=os.setsid, stderr=subprocess.STDOUT, stdout=out)
 
     while p.poll() is None:
-        utime = _calc_total_usertime(r, tick, redis_key)
+        cputime = _calc_total_cputime(r, tick, redis_key)
         if verbose:
-            err.write('utime: {0}s\n'.format(utime))
+            err.write('cputime: {0}s\n'.format(cputime))
             err.flush()
-        if utime > timeout:
+        if cputime > timeout:
             os.killpg(p.pid, signal.SIGTERM)
-            err.write('timeout ({0}s)\n'.format(utime))
+            err.write('timeout ({0}s)\n'.format(cputime))
             err.flush()
             timeout = True
             break
         time.sleep(polling_time)
     else:
-        utime = _calc_total_usertime(r, tick, redis_key)
-        err.write('finish ({0}s)\n'.format(utime))
+        cputime = _calc_total_cputime(r, tick, redis_key)
+        err.write('finish ({0}s)\n'.format(cputime))
         err.flush()
         timeout = False
     r.delete(redis_key)
