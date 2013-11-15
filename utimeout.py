@@ -9,9 +9,6 @@ import uuid
 import redis
 from multiprocessing import Process, Queue
 
-import datetime
-import pytz
-tzinfo = pytz.timezone('Asia/Tokyo')
 
 STDOUT = -2
 
@@ -90,7 +87,7 @@ def _start_queue(queue, cmd, timeout, polling_time, verbose, stdout, stderr):
     queue.put(timeout)
 
 
-def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None):
+def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None, start_message=None, finish_message=None, timeout_message=None):
     """
     if timeout return True,
     if finish return False.
@@ -110,14 +107,22 @@ def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None)
                             verbose=verbose,
                             stdout=out,
                             stderr=err))
-    err.write('>' * 80 + '\n')
-    err.write('# DATETIME: {0}\n'.format(datetime.datetime.now(tz=tzinfo)))
-    err.write(' '.join(cmd) + '\n')
-    err.flush()
+    if start_message:
+        msg = start_message(cmd, timeout, polling_time, verbose)
+        if msg != "":
+            err.write(str(msg))
+            err.flush()
     p.start()
     timeout = queue.get()
     p.join()
-    err.write('# DATETIME: {0}\n'.format(datetime.datetime.now(tz=tzinfo)))
-    err.write('<' * 80 + '\n')
-    err.flush()
+    if timeout and timeout_message:
+        msg = timeout_message(cmd, timeout, polling_time, verbose)
+        if msg != "":
+            err.write(str(msg))
+            err.flush()
+    elif not timeout and finish_message:
+        msg = finish_message(cmd, timeout, polling_time, verbose)
+        if msg != "":
+            err.write(str(msg))
+            err.flush()
     return timeout
