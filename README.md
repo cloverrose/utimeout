@@ -7,6 +7,9 @@ Run command with CPU time (user time + system time) sense timeout.
    - ```python demo.py sleepchild```
 
 
+*u* means LTL's *Until* operator.
+
+
 Install
 -------
 
