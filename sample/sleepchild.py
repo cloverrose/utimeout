@@ -4,9 +4,9 @@ import sys
 
 
 def main():
-    for i in range(10):
+    for i in range(5):
         sys.stdout.write('zzZ\n')
-        time.sleep(10)
+        time.sleep(1)
 
 
 if __name__ == '__main__':
