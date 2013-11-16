@@ -3,7 +3,7 @@ utimeout
 
 Run command with CPU time (user time + system time) sense timeout.
 
- - dose not kill child process when child process is sleeping.
+ - does not kill child process when child process is sleeping.
    - ```python demo.py sleepchild```
 
 
