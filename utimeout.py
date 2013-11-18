@@ -54,7 +54,7 @@ def _start_core(cmd, timeout, polling_time, verbose, stdout, stderr):
 
     tick = _get_tick()
     if verbose:
-        stderr.write('tick: {0}\n'.format(tick))
+        stderr.write('\ntick: {0}\n'.format(tick))
         stderr.flush()
     r = redis.StrictRedis(host='localhost', port=6379, db=0)
     r.delete(redis_key)
@@ -64,18 +64,18 @@ def _start_core(cmd, timeout, polling_time, verbose, stdout, stderr):
     while p.poll() is None:
         cputime = _calc_total_cputime(r, tick, redis_key)
         if verbose:
-            stderr.write('cputime: {0}s\n'.format(cputime))
+            stderr.write('\ncputime: {0}s\n'.format(cputime))
             stderr.flush()
         if cputime > timeout:
             os.killpg(p.pid, signal.SIGTERM)
-            stderr.write('timeout ({0}s)\n'.format(cputime))
+            stderr.write('\ntimeout ({0}s)\n'.format(cputime))
             stderr.flush()
             timeout = True
             break
         time.sleep(polling_time)
     else:
         cputime = _calc_total_cputime(r, tick, redis_key)
-        stderr.write('finish ({0}s)\n'.format(cputime))
+        stderr.write('\nfinish ({0}s)\n'.format(cputime))
         stderr.flush()
         timeout = False
     r.delete(redis_key)
@@ -110,7 +110,7 @@ def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None,
     if start_message:
         msg = start_message(cmd, timeout, polling_time, verbose)
         if msg != "":
-            err.write(str(msg))
+            err.write('\n{0}\n'.format(msg))
             err.flush()
     p.start()
     timeout = queue.get()
@@ -118,11 +118,11 @@ def start(cmd, timeout, polling_time=1, verbose=False, stdout=None, stderr=None,
     if timeout and timeout_message:
         msg = timeout_message(cmd, timeout, polling_time, verbose)
         if msg != "":
-            err.write(str(msg))
+            err.write('\n{0}\n'.format(msg))
             err.flush()
     elif not timeout and finish_message:
         msg = finish_message(cmd, timeout, polling_time, verbose)
         if msg != "":
-            err.write(str(msg))
+            err.write('\n{0}\n'.format(msg))
             err.flush()
     return timeout
